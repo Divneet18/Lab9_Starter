@@ -69,7 +69,7 @@
     </form>
 
     <section id="error-btns">
-      <button>Console Log</button>
+      <button id = "log">Console Log</button>
       <button>Console Error</button>
       <button>Console Count</button>
       <button>Console Warn</button>
@@ -85,9 +85,23 @@
       <button>Console Trace</button>
       <button>Trigger a Global Error</button>
     </section>
-  </main>
-
+  </main>  
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
   <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "7a6ce473b11341b182a8a2e335a8a914"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script> 
+  <script>
+    TrackJS.track('testing');
+    class ValidationError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "ValidationError";
+      }
+    }
+
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,11 +109,116 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      String.prototype.isNumber = function(){return /^\d+$/.test(this);}
+      let evaluate = true;
+      try {
+        if(!firstNum.isNumber()){
+          // throw new Error();
+          evaluate = false;
+          throw new Error("First Argument isn't a number!");
+          // console.log("ih");
+        }
+
+        if (!secondNum.isNumber()) {
+          evaluate = false;
+          throw new ValidationError("Second Argument isn't a number!")
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if(evaluate === true){ 
+          output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+        }
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
+    let counter = 0;
+    let groupTrue = false;
+    for(let i = 0; i < errorBtns.length; i++){
+      let buttonType = errorBtns[i];
+      console.log("buttonType.innerText", buttonType.innerText);
+      errorBtns[i].addEventListener('click', () => {
+        switch (buttonType.innerText){
+          case "Console Log":
+            console.log("Console Log Demo");
+            break;
+          case "Console Error":
+            console.error("Console Error Demo");
+            break;
+          case "Console Count":
+            console.log("Count Button: ", ++counter);
+            break;
+          case "Console Warn":
+            console.warn("Console Warm Button");
+            break;
+          case "Console Assert":
+            let number = 2;
+            console.assert(number === 3, {number: number, errorMsg: "The number does not equal 3"});
+            break;
+          case "Console Clear":
+            console.clear();
+            break;
+          case "Console Dir":
+            console.dir(errorBtns[i]);
+            break;
+          case "Console dirxml":
+            console.dirxml(errorBtns[i]);
+            break;
+          case "Console Group Start":
+            console.group();
+            break;
+          case "Console Group End":
+            console.groupEnd();
+            break;
+          case "Console Table":
+            var cse110 = new classTitle("Software Class", "110");
+            var cse130 = new classTitle("Programming Class", "130");
+            var cse112 = new classTitle("Advance Software Class", "112");
+            console.table([cse110, cse130, cse112]);
+            break;
+          case "Start Timer":
+            console.time("Timer Button");
+            break;
+          case "End Timer":
+            console.timeEnd("Timer Button");
+            break;
+          case "Console Trace":
+            const handleBtnClick = function(){ 
+              deep(); 
+            };
+            const deep = function(){ 
+              deeper(); 
+            };
+            const deeper = function(){ 
+              deepest(); 
+            };
+            const deepest = function(){ 
+              console.trace(); 
+            };
+            handleBtnClick();
+            break;
+          case "Trigger a Global Error":
+            window.onerror = function(error) {
+              console.log("one error ", error);
+            }
+            window.addEventListener('error', function() {
+              console.log("Sadly an error happened my friend");
+            });
+            throw new Error("boom is not defined");
+            break; 
+          default: 
+            console.log("inside");
+            break;
+        }
+      });
+    }
 
+    function classTitle(name, num) {
+      this.name = name;
+      this.num = num;
+    }
     // Start your code here
     // You may move this JS to another file if you wish
   </script>
